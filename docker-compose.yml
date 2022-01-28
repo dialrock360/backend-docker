@@ -1,0 +1,39 @@
+version: "3.7"
+
+services:
+    database:
+        image: mysql:8
+        container_name: database
+        restart: unless-stopped
+        environment:
+          MYSQL_ROOT_PASSWORD: mkpass
+          MYSQL_DATABASE: mkdatabase
+          MYSQL_USER: mkuser
+          MYSQL_PASSWORD: mkpass
+        volumes:
+          - ./database:/var/lib/mysql
+          - ./scripts:/root/scripts
+        ports:
+          - '5432:5432'
+    php-backend:
+        container_name: php-backend
+        build:
+          context: ./php
+        ports:
+            - '8088:80'
+        volumes:
+          - ./src:/var/www/mkdbackend
+          - ./apache/default.conf:/etc/apache2/sites-enabled/000-default.conf
+        depends_on:
+          - database
+
+    phpmyadmin:
+        depends_on:
+          - database
+        image: phpmyadmin/phpmyadmin
+        ports:
+          - "8095:80"
+        restart: "no"
+        environment:
+          PMA_HOST: database
+          MYSQL_ROOT_PASSWORD: mkpass
